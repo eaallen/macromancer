@@ -24,6 +24,7 @@
       { "source": "/ember", "destination": "/ember.html" },
       { "source": "/colossus", "destination": "/colossus.html" },
       { "source": "/twins", "destination": "/twins.html" },
+      { "source": "/how", "destination": "/how.html" },
       { "source": "**", "destination": "/index.html" }
     ]
   }

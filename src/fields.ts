@@ -2,6 +2,7 @@ import "./style.css";
 import { fetchTopEntries } from "./game/leaderboard.ts";
 import { LEVEL_CATALOG } from "./game/levelIds.ts";
 import { formatScore } from "./game/score.ts";
+import { addHowItWasMadeLink } from "./game/siteNav.ts";
 
 const FIELD_BOARD_SIZE = 3;
 
@@ -46,4 +47,5 @@ async function fillFieldBoards(): Promise<void> {
   );
 }
 
+addHowItWasMadeLink();
 void fillFieldBoards();

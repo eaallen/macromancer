@@ -14,8 +14,10 @@ import { createTouchControls, isTouchPlay } from "./game/touchControls.ts";
 import { Game } from "./game/game.ts";
 import { loadPageLevel } from "./game/level.ts";
 import { ensurePlayer } from "./game/leaderboard.ts";
+import { addHowItWasMadeLink } from "./game/siteNav.ts";
 
 const level = loadPageLevel();
+addHowItWasMadeLink();
 
 const foundCanvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
 if (!foundCanvas) {

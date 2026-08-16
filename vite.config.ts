@@ -30,6 +30,7 @@ export default defineConfig({
         colossus: resolve(root, "colossus.html"),
         twins: resolve(root, "twins.html"),
         fields: resolve(root, "fields.html"),
+        how: resolve(root, "how.html"),
       },
     },
   },
