@@ -41,6 +41,8 @@ export function createScene(engine: Engine, vibe: LevelVibe): Scene {
   skybox.material = skyMaterial;
   skybox.infiniteDistance = true;
   skybox.isPickable = false;
+  skybox.checkCollisions = false;
+  skybox.freezeWorldMatrix();
 
   const sun = new DirectionalLight("sun", sunPosition.negate(), scene);
   sun.intensity = vibe.sun.intensity;
@@ -50,6 +52,10 @@ export function createScene(engine: Engine, vibe: LevelVibe): Scene {
   const hemi = new HemisphericLight("hemi", new Vector3(0, 1, 0), scene);
   hemi.intensity = vibe.hemi.intensity;
   hemi.groundColor = rgb3(vibe.hemi.ground);
+
+  // Skip per-frame material dirty checks on static lighting/sky once set.
+  scene.skipPointerMovePicking = true;
+  scene.autoClearDepthAndStencil = true;
 
   return scene;
 }

@@ -58,6 +58,7 @@ export class Game {
   private readonly countedDead = new Set<Knight>();
   private readonly activatedMacros = new Set<string>();
   private readonly level: LevelConfig;
+  private spawnMarkerAge = 0;
 
   static async create(
     scene: Scene,
@@ -553,6 +554,14 @@ export class Game {
       !this.canDeployKnight()
     ) {
       this.spawnMarker.setEnabled(false);
+      return;
+    }
+    // Picking every frame is costly on mobile while the giant (and camera) move.
+    this.spawnMarkerAge += 1;
+    const throttle = isTouchPlay() ? 2 : 1;
+    if (this.spawnMarker.isEnabled() && this.spawnMarkerAge % throttle !== 0) {
+      const pulse = 1 + Math.sin(performance.now() / 220) * 0.08;
+      this.spawnMarker.scaling.setAll(pulse);
       return;
     }
     const point = this.pickWalkablePoint();

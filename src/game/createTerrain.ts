@@ -7,6 +7,7 @@ import type { GroundMesh } from "@babylonjs/core/Meshes/groundMesh";
 import { WORLD_SIZE } from "./config.ts";
 import { heightAt } from "./height.ts";
 import type { LevelVibe, Rgb } from "./level.ts";
+import { isTouchPlay } from "./touchControls.ts";
 
 function rgb4(values: Rgb): Color4 {
   return new Color4(values[0], values[1], values[2], 1);
@@ -30,13 +31,15 @@ export function createTerrain(scene: Scene, vibe: LevelVibe): GroundMesh {
   const grass = rgb4(vibe.terrain.grass);
   const grassDark = rgb4(vibe.terrain.grassDark);
   const dirt = rgb4(vibe.terrain.dirt);
+  // Mobile keeps a lighter mesh; heightAt still drives placement/collision.
+  const subdivisions = isTouchPlay() ? 48 : 90;
 
   const ground = MeshBuilder.CreateGround(
     "terrain",
     {
       width: WORLD_SIZE,
       height: WORLD_SIZE,
-      subdivisions: 90,
+      subdivisions,
       updatable: true,
     },
     scene,
@@ -77,9 +80,13 @@ export function createTerrain(scene: Scene, vibe: LevelVibe): GroundMesh {
   material.specularColor.set(0.04, 0.04, 0.04);
   material.diffuseColor.set(1, 1, 1);
   ground.material = material;
-  ground.checkCollisions = true;
+  // Flat-shaded heightfields are expensive for Babylon ellipsoid tests.
+  // Characters plant with heightAt; keep the mesh pickable for spawn markers.
+  ground.checkCollisions = false;
+  ground.isPickable = true;
   ground.metadata = { walkable: true };
   ground.freezeWorldMatrix();
+  material.freeze();
 
   return ground;
 }
