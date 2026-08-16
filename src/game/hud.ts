@@ -138,7 +138,7 @@ function touchHelp(mode: GameMode, outOfKnights: boolean): string {
       : "Click the ground to start a knight · WASD look around · Left-drag orbit · Space run selected";
   }
   if (mode === "macro") {
-    return "Stick move · drag look · Attack / Jump / Sprint";
+    return "Stick move · drag look · Attack / Jump / tap Sprint to run";
   }
   return outOfKnights
     ? "No knights left to send · drag to orbit · pinch to zoom"

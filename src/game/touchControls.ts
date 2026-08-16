@@ -5,7 +5,12 @@ const STICK_RADIUS = 56;
 const STICK_DEADZONE = 0.28;
 const MOVE_KEYS = ["KeyW", "KeyA", "KeyS", "KeyD"] as const;
 
-type HoldCode = "Space" | "ShiftLeft";
+type HoldCode = "Space";
+type ToggleCode = "ShiftLeft";
+type TouchAction =
+  | { kind: "pulse"; code: string }
+  | { kind: "hold"; code: HoldCode }
+  | { kind: "toggle"; code: ToggleCode };
 
 export type TouchControls = {
   setMode: (mode: GameMode) => void;
@@ -43,11 +48,11 @@ export function createTouchControls(input: InputState): TouchControls {
       </div>
     </div>
     <div id="touch-actions">
-      <button type="button" class="touch-btn" data-pulse="KeyR">Record</button>
-      <button type="button" class="touch-btn" data-pulse="Tab">Overview</button>
-      <button type="button" class="touch-btn" data-hold="ShiftLeft">Sprint</button>
-      <button type="button" class="touch-btn" data-hold="Space">Jump</button>
-      <button type="button" class="touch-btn touch-btn-attack" data-pulse="KeyJ">Attack</button>
+      <button type="button" class="touch-btn" data-pulse="KeyR" draggable="false">Record</button>
+      <button type="button" class="touch-btn" data-pulse="Tab" draggable="false">Overview</button>
+      <button type="button" class="touch-btn" data-toggle="ShiftLeft" aria-pressed="false" draggable="false">Sprint</button>
+      <button type="button" class="touch-btn" data-hold="Space" draggable="false">Jump</button>
+      <button type="button" class="touch-btn touch-btn-attack" data-pulse="KeyJ" draggable="false">Attack</button>
     </div>
   `;
   hud.append(root);
@@ -69,6 +74,7 @@ export function createTouchControls(input: InputState): TouchControls {
   let originX = 0;
   let originY = 0;
   const holds = new Map<number, HoldCode>();
+  const toggles = new Set<ToggleCode>();
 
   const setMove = (nx: number, ny: number): void => {
     input.setVirtualKey("KeyW", ny < -STICK_DEADZONE);
@@ -138,17 +144,22 @@ export function createTouchControls(input: InputState): TouchControls {
   zone.addEventListener("pointerup", endStick);
   zone.addEventListener("pointercancel", endStick);
   zone.addEventListener("lostpointercapture", endStick);
-  zone.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-  });
+  suppressOsCallout(zone);
 
   const releaseHolds = (): void => {
     for (const code of holds.values()) {
       input.setVirtualKey(code, false);
     }
     holds.clear();
+    for (const code of toggles) {
+      input.setVirtualKey(code, false);
+    }
+    toggles.clear();
     actions.querySelectorAll(".held").forEach((btn) => {
       btn.classList.remove("held");
+      if (btn instanceof HTMLElement && btn.dataset.toggle) {
+        btn.setAttribute("aria-pressed", "false");
+      }
     });
   };
 
@@ -160,25 +171,45 @@ export function createTouchControls(input: InputState): TouchControls {
   actions.addEventListener("pointerdown", (event) => {
     const btn =
       event.target instanceof Element
-        ? event.target.closest<HTMLElement>("[data-pulse], [data-hold]")
+        ? event.target.closest<HTMLElement>("[data-pulse], [data-hold], [data-toggle]")
         : null;
     if (!btn) {
       return;
     }
-    const pulse = btn.dataset.pulse;
-    const hold = btn.dataset.hold;
+    const action = readTouchAction(btn);
+    if (!action) {
+      return;
+    }
     event.preventDefault();
-    if (pulse) {
-      input.pulseVirtualKey(pulse);
-      return;
+    switch (action.kind) {
+      case "pulse":
+        input.pulseVirtualKey(action.code);
+        return;
+      case "hold":
+        holds.set(event.pointerId, action.code);
+        input.setVirtualKey(action.code, true);
+        btn.classList.add("held");
+        btn.setPointerCapture(event.pointerId);
+        return;
+      case "toggle": {
+        const on = !toggles.has(action.code);
+        if (on) {
+          toggles.add(action.code);
+          input.setVirtualKey(action.code, true);
+          btn.classList.add("held");
+        } else {
+          toggles.delete(action.code);
+          input.setVirtualKey(action.code, false);
+          btn.classList.remove("held");
+        }
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        return;
+      }
+      default: {
+        const _never: never = action;
+        return _never;
+      }
     }
-    if (hold !== "Space" && hold !== "ShiftLeft") {
-      return;
-    }
-    holds.set(event.pointerId, hold);
-    input.setVirtualKey(hold, true);
-    btn.classList.add("held");
-    btn.setPointerCapture(event.pointerId);
   });
 
   const endHold = (event: PointerEvent): void => {
@@ -193,9 +224,7 @@ export function createTouchControls(input: InputState): TouchControls {
   actions.addEventListener("pointerup", endHold);
   actions.addEventListener("pointercancel", endHold);
   actions.addEventListener("lostpointercapture", endHold);
-  actions.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-  });
+  suppressOsCallout(actions);
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
@@ -221,7 +250,7 @@ function applyTouchStartCopy(): void {
   list.replaceChildren(
     item("Mancer — tap the field to place your knight and start a macro"),
     item("Macro — play the knight; Overview returns to the map"),
-    item("Left stick moves · drag to look · Attack, Jump, Sprint, Record"),
+    item("Left stick moves · drag to look · Attack, Jump, tap Sprint to run, Record"),
   );
 }
 
@@ -229,4 +258,34 @@ function item(text: string): HTMLLIElement {
   const li = document.createElement("li");
   li.textContent = text;
   return li;
+}
+
+function readTouchAction(btn: HTMLElement): TouchAction | null {
+  const pulse = btn.dataset.pulse;
+  if (pulse) {
+    return { kind: "pulse", code: pulse };
+  }
+  const hold = btn.dataset.hold;
+  if (hold === "Space") {
+    return { kind: "hold", code: hold };
+  }
+  const toggle = btn.dataset.toggle;
+  if (toggle === "ShiftLeft") {
+    return { kind: "toggle", code: toggle };
+  }
+  return null;
+}
+
+/**
+ * iOS Safari treats a held button as text: copy/paste/callout. Block that so
+ * Jump still works as a hold, and Sprint is not stolen by the system menu.
+ */
+function suppressOsCallout(el: HTMLElement): void {
+  const block = (event: Event): void => {
+    event.preventDefault();
+  };
+  el.addEventListener("contextmenu", block);
+  el.addEventListener("selectstart", block);
+  el.addEventListener("dragstart", block);
+  el.addEventListener("touchstart", block, { passive: false });
 }
