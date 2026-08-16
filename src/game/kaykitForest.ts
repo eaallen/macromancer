@@ -106,9 +106,10 @@ export async function loadBuildingTemplates(
   files: readonly string[],
   transparencyMode: number,
 ): Promise<TransformNode[]> {
+  // Visual meshes stay non-solid; villages add invisible box hulls in world.ts.
   return Promise.all(
     files.map((file) =>
-      loadGltfTemplate(scene, `${BUILDING_ROOT}/${file}`, transparencyMode, true),
+      loadGltfTemplate(scene, `${BUILDING_ROOT}/${file}`, transparencyMode, false),
     ),
   );
 }

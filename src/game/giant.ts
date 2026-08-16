@@ -83,6 +83,8 @@ export class Giant {
   private readonly recovery: number;
   private readonly attackCooldown: number;
   private readonly displacement = new Vector3();
+  private plantedX = Number.NaN;
+  private plantedZ = Number.NaN;
 
   static create(scene: Scene, kit: AssetContainer, options: GiantOptions): Giant {
     return new Giant(scene, kit, options);
@@ -324,6 +326,17 @@ export class Giant {
     return this.collisionRadius + CHASE_STOP_PADDING;
   }
 
+  private plantOnGround(force = false): void {
+    const x = this.mesh.position.x;
+    const z = this.mesh.position.z;
+    if (!force && x === this.plantedX && z === this.plantedZ) {
+      return;
+    }
+    this.plantedX = x;
+    this.plantedZ = z;
+    this.mesh.position.y = heightAt(x, z) + this.halfHeight;
+  }
+
   private applySize(): void {
     const scale = this.fullSize;
     this.mesh.scaling.setAll(scale);
@@ -331,12 +344,7 @@ export class Giant {
     const half = (GIANT_HEIGHT * scale) / 2;
     this.mesh.ellipsoid = new Vector3(radius, Math.max(0.15, half - 0.25 * scale), radius);
     this.mesh.ellipsoidOffset = new Vector3(0, 0.2 * scale, 0);
-    this.plantOnGround();
-  }
-
-  private plantOnGround(): void {
-    this.mesh.position.y =
-      heightAt(this.mesh.position.x, this.mesh.position.z) + this.halfHeight;
+    this.plantOnGround(true);
   }
 
   distanceTo(knight: Knight): number {

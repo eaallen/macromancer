@@ -3,7 +3,6 @@ import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
-import { Ray } from "@babylonjs/core/Culling/ray";
 import { Mesh } from "@babylonjs/core/Meshes/mesh";
 import type { AnimationGroup } from "@babylonjs/core/Animations/animationGroup";
 import type { AssetContainer } from "@babylonjs/core/assetContainer";
@@ -115,7 +114,6 @@ export class Knight {
   private readonly move = new Vector3();
   private readonly target = new Vector3();
   private readonly desiredCamera = new Vector3();
-  private readonly down = Vector3.Down();
   private playback: { macro: Macro; t: number } | null = null;
 
   static create(
@@ -660,37 +658,8 @@ export class Knight {
     this.mesh.moveWithCollisions(this.move);
   }
 
-  private probeGroundY(): number | null {
-    const origin = this.mesh.position;
-    const hit = this.mesh.getScene().pickWithRay(
-      new Ray(
-        new Vector3(origin.x, origin.y + 0.25, origin.z),
-        this.down,
-        CAPSULE_HALF + STEP_HEIGHT + 1.2,
-      ),
-      (mesh) =>
-        mesh.isEnabled() &&
-        mesh.checkCollisions &&
-        mesh !== this.mesh &&
-        mesh.metadata?.walkable !== false,
-    );
-    if (!hit?.hit || !hit.pickedPoint) {
-      return null;
-    }
-    return hit.pickedPoint.y;
-  }
-
   private groundY(): number {
-    const terrainY = heightAt(this.mesh.position.x, this.mesh.position.z);
-    const hitY = this.probeGroundY();
-    if (hitY === null) {
-      return terrainY;
-    }
-    const feetY = this.mesh.position.y - CAPSULE_HALF;
-    if (hitY > Math.max(feetY, terrainY) + STEP_HEIGHT) {
-      return terrainY;
-    }
-    return hitY;
+    return heightAt(this.mesh.position.x, this.mesh.position.z);
   }
 
   private isGrounded(): boolean {

@@ -37,9 +37,11 @@ const startButton: HTMLButtonElement = foundStart;
 const resetButton: HTMLButtonElement = foundReset;
 const retryButton: HTMLButtonElement = foundRetry;
 
-const engine = new Engine(canvas, true);
+const engine = new Engine(canvas, !isTouchPlay());
 if (isTouchPlay()) {
-  engine.setHardwareScalingLevel(Math.max(1, window.devicePixelRatio * 0.6));
+  // Phones pay more while the camera follows a running giant; render below
+  // native DPR and skip MSAA to keep fill-rate under control.
+  engine.setHardwareScalingLevel(Math.max(1.25, window.devicePixelRatio * 0.75));
 }
 const scene = createScene(engine, level.vibe);
 createTerrain(scene, level.vibe);

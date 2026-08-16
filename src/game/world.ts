@@ -13,7 +13,11 @@ import {
   loadBuildingTemplates,
   loadForestTemplates,
 } from "./kaykitForest.ts";
-import type { LevelBuilding, LevelConfig, ScatterKind } from "./level.ts";
+import type { LevelBuilding, LevelConfig, LevelScatter, ScatterKind } from "./level.ts";
+import { isTouchPlay } from "./touchControls.ts";
+
+/** Trim foliage on phones so chase camera motion stays fill-rate friendly. */
+const MOBILE_SCATTER_SCALE = 0.55;
 
 function hash(n: number): number {
   const x = Math.sin(n * 127.1) * 43758.5453;
@@ -43,6 +47,7 @@ function createBounds(scene: Scene): void {
     mesh.isVisible = false;
     mesh.isPickable = false;
     mesh.metadata = { walkable: false };
+    mesh.freezeWorldMatrix();
   }
 }
 
@@ -63,6 +68,14 @@ function cloneProp(
   clone.position.set(x, heightAt(x, z), z);
   clone.setEnabled(true);
   return clone;
+}
+
+function freezeStatic(node: TransformNode): void {
+  node.computeWorldMatrix(true);
+  for (const mesh of node.getChildMeshes()) {
+    mesh.freezeWorldMatrix();
+    mesh.material?.freeze();
+  }
 }
 
 function addSolidHull(node: TransformNode, scene: Scene): void {
@@ -86,6 +99,7 @@ function addSolidHull(node: TransformNode, scene: Scene): void {
   hull.isVisible = false;
   hull.isPickable = false;
   hull.metadata = { walkable: false };
+  hull.freezeWorldMatrix();
 }
 
 function nearBuilding(x: number, z: number, buildings: readonly LevelBuilding[]): boolean {
@@ -95,6 +109,32 @@ function nearBuilding(x: number, z: number, buildings: readonly LevelBuilding[])
     }
   }
   return false;
+}
+
+function scaleScatterKind(spec: ScatterKind, factor: number): ScatterKind {
+  if (factor >= 0.999) {
+    return spec;
+  }
+  return {
+    ...spec,
+    count: Math.max(1, Math.round(spec.count * factor)),
+    attempts: Math.max(1, Math.round(spec.attempts * factor)),
+  };
+}
+
+function mobileScatter(scatter: LevelScatter): LevelScatter {
+  if (!isTouchPlay()) {
+    return scatter;
+  }
+  const foliage = MOBILE_SCATTER_SCALE;
+  return {
+    trees: scaleScatterKind(scatter.trees, foliage),
+    pines: scaleScatterKind(scatter.pines, foliage),
+    rocks: scaleScatterKind(scatter.rocks, 0.7),
+    bushes: scaleScatterKind(scatter.bushes, foliage),
+    grass: scaleScatterKind(scatter.grass, 0.4),
+    ringTrees: Math.max(0, Math.round(scatter.ringTrees * foliage)),
+  };
 }
 
 function scatter(
@@ -133,11 +173,14 @@ function scatter(
     if (!node) {
       continue;
     }
-    if (spec.collide) {
-      for (const mesh of node.getChildMeshes()) {
-        mesh.checkCollisions = true;
-      }
+    for (const mesh of node.getChildMeshes()) {
+      mesh.checkCollisions = false;
     }
+    if (spec.collide) {
+      // Box hulls instead of GLB triangle tests (critical while the giant runs).
+      addSolidHull(node, node.getScene());
+    }
+    freezeStatic(node);
     placed += 1;
   }
 }
@@ -176,12 +219,17 @@ async function createVillage(scene: Scene, buildings: readonly LevelBuilding[]):
     scaleTemplateToHeight(node, spot.height);
     node.rotation.y = spot.yaw;
     node.position.set(spot.x, heightAt(spot.x, spot.z), spot.z);
+    for (const mesh of node.getChildMeshes()) {
+      mesh.checkCollisions = false;
+    }
     addSolidHull(node, scene);
+    freezeStatic(node);
   }
 }
 
 async function createForest(scene: Scene, level: LevelConfig): Promise<void> {
   const cutout = Material.MATERIAL_ALPHATEST;
+  const scatterSpec = mobileScatter(level.scatter);
   const [leafy, pines, bushes, rocks, grass] = await Promise.all([
     loadForestTemplates(scene, LEAFY_TREE_FILES, cutout),
     loadForestTemplates(scene, PINE_TREE_FILES, cutout),
@@ -190,13 +238,13 @@ async function createForest(scene: Scene, level: LevelConfig): Promise<void> {
     loadForestTemplates(scene, GRASS_FILES, cutout),
   ]);
 
-  scatter(leafy, "tree", level.scatter.trees, level.buildings);
-  scatter(pines, "pine", level.scatter.pines, level.buildings);
-  scatter(rocks, "rock", level.scatter.rocks, level.buildings);
-  scatter(bushes, "bush", level.scatter.bushes, level.buildings);
-  scatter(grass, "grass", level.scatter.grass, level.buildings);
+  scatter(leafy, "tree", scatterSpec.trees, level.buildings);
+  scatter(pines, "pine", scatterSpec.pines, level.buildings);
+  scatter(rocks, "rock", scatterSpec.rocks, level.buildings);
+  scatter(bushes, "bush", scatterSpec.bushes, level.buildings);
+  scatter(grass, "grass", scatterSpec.grass, level.buildings);
 
-  const treeRing = level.scatter.ringTrees;
+  const treeRing = scatterSpec.ringTrees;
   for (let i = 0; i < treeRing; i++) {
     const angle = (i / treeRing) * Math.PI * 2 + 0.2;
     const radius = ARENA_RADIUS + 4 + hash(i * 9.1) * 6;
@@ -212,7 +260,10 @@ async function createForest(scene: Scene, level: LevelConfig): Promise<void> {
     if (!template) {
       continue;
     }
-    cloneProp(template, `ringTree${i}`, x, z, 1.15 + hash(i) * 0.35, angle);
+    const node = cloneProp(template, `ringTree${i}`, x, z, 1.15 + hash(i) * 0.35, angle);
+    if (node) {
+      freezeStatic(node);
+    }
   }
 }
 
