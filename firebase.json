@@ -1,0 +1,30 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "auth": {
+    "providers": {
+      "anonymous": true
+    }
+  },
+  "hosting": {
+    "site": "macromancer",
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      { "source": "/fields", "destination": "/fields.html" },
+      { "source": "/meadow", "destination": "/meadow.html" },
+      { "source": "/hamlet", "destination": "/hamlet.html" },
+      { "source": "/siege", "destination": "/siege.html" },
+      { "source": "/sprinter", "destination": "/sprinter.html" },
+      { "source": "/tank", "destination": "/tank.html" },
+      { "source": "/watchman", "destination": "/watchman.html" },
+      { "source": "/cleaver", "destination": "/cleaver.html" },
+      { "source": "/ember", "destination": "/ember.html" },
+      { "source": "/colossus", "destination": "/colossus.html" },
+      { "source": "/twins", "destination": "/twins.html" },
+      { "source": "**", "destination": "/index.html" }
+    ]
+  }
+}

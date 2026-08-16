@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: levelScores/{levelId}/entries
+    // Document ID: authenticated uid (one high score per player per field)
+    // Fields:
+    //   - uid: string (required, immutable) — must equal auth.uid and doc ID
+    //   - levelId: string (required, immutable) — whitelist below, must match path
+    //   - name: string (required) — exactly 3 characters A-Z
+    //   - score: number (required) — integer 0..999999
+    //   - createdAt: timestamp (required, immutable) — request.time on create
+    //   - updatedAt: timestamp (required) — request.time on create and update
+    //
+    // Updates may raise score only. Deletes are denied.
+    // No PII: arcade initials only.
+    //
+    // ===============================================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /levelScores/{levelId}/entries/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) &&
+        isValidScoreEntry(request.resource.data) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.levelId == levelId &&
+        isKnownLevel(levelId) &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time;
+      allow update: if isOwner(userId) &&
+        isValidScoreEntry(request.resource.data) &&
+        uidNotModified() &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.levelId == resource.data.levelId &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.updatedAt == request.time &&
+        request.resource.data.score > resource.data.score &&
+        isKnownLevel(levelId);
+      allow delete: if false;
+    }
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == request.auth.uid;
+    }
+
+    function uidNotModified() {
+      return !('uid' in request.resource.data) ||
+        request.resource.data.uid == resource.data.uid;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isKnownLevel(levelId) {
+      return levelId in [
+        'training',
+        'meadow',
+        'hamlet',
+        'siege',
+        'sprinter',
+        'tank',
+        'watchman',
+        'cleaver',
+        'ember',
+        'colossus',
+        'twins'
+      ];
+    }
+
+    function isValidScoreEntry(data) {
+      return hasOnlyAllowedFields([
+          'uid',
+          'levelId',
+          'name',
+          'score',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        hasRequiredFields([
+          'uid',
+          'levelId',
+          'name',
+          'score',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        uidUnchanged() &&
+        data.uid is string &&
+        data.uid == request.auth.uid &&
+        data.levelId is string &&
+        isKnownLevel(data.levelId) &&
+        data.name is string &&
+        data.name.matches('^[A-Z]{3}$') &&
+        data.score is number &&
+        data.score == int(data.score) &&
+        data.score >= 0 &&
+        data.score <= 999999 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+  }
+}

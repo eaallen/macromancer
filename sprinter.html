@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>The Sprinter</title>
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+    <div id="hud" class="hidden">
+      <div id="mode-badge">MANCER</div>
+      <div id="knight-pool">Knights 0/8</div>
+      <div id="score">Score 10,000</div>
+      <div id="giant-hp-wrap">
+        <div class="boss-label">The Runner</div>
+        <div class="boss-bar">
+          <div id="giant-hp-fill"></div>
+        </div>
+        <div id="giant-hp-text">220 / 220</div>
+      </div>
+      <div id="knight-hp">Knight HP 20/20</div>
+      <div id="recording-pip" class="hidden">REC</div>
+      <div id="macro-panel">
+        <div class="panel-title">Macros</div>
+        <div id="macro-list"></div>
+        <div id="macro-hint"></div>
+      </div>
+      <div id="help"></div>
+      <div id="hurt-flash"></div>
+    </div>
+    <div id="win-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="win-title">Caught</h1>
+        <p id="win-score" class="score-line">Score 0</p>
+        <p id="win-body">Speed was not enough once the paths closed in.</p>
+        <button type="button" class="cta" id="reset-button">Fight again</button>
+        <a id="next-level" class="cta" href="tank.html">Next level: The Tank</a>
+      </div>
+    </div>
+    <div id="lose-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="lose-title">Gone</h1>
+        <p id="lose-body">He ran you down one at a time. Pin him with overlapping macros.</p>
+        <button type="button" class="cta" id="retry-button">Try again</button>
+      </div>
+    </div>
+    <div id="start-overlay">
+      <div class="panel">
+        <p class="eyebrow" id="level-eyebrow">Field 5</p>
+        <h1 id="level-title">The Sprinter</h1>
+        <p id="level-blurb">Small, fast, and he never loses the scent. Eight knights. If you clump, he cuts the pack. If you spread, he sprints the gaps.</p>
+        <ul>
+          <li><strong>Mancer</strong> — tap or click the field to place your knight and start a macro</li>
+          <li><strong>Macro</strong> — play the knight; Overview or <kbd>Tab</kbd> returns to overview</li>
+          <li>Stick or <kbd>WASD</kbd> move · Sprint / <kbd>Shift</kbd> run · Attack or <kbd>J</kbd></li>
+        </ul>
+        <button type="button" class="cta" id="start-button" disabled>Loading the field…</button>
+        <p class="level-nav"><a href="fields.html">All fields</a></p>
+      </div>
+    </div>
+    <script type="application/json" id="level-config">
+{
+  "title": "The Sprinter",
+  "bossName": "The Runner",
+  "next": "tank.html",
+  "knights": 8,
+  "giant": {
+    "hp": 220,
+    "size": 0.58,
+    "speed": 13.2,
+    "damage": 40,
+    "smashRange": 6.4,
+    "smashAngle": 40,
+    "sightRange": 70,
+    "turnSpeed": 150
+  },
+  "arena": {
+    "x": 0,
+    "z": 0,
+    "radius": 40
+  },
+  "spawn": {
+    "x": -6,
+    "z": -34
+  },
+  "villageRing": null,
+  "flats": [],
+  "buildings": [
+    {
+      "file": "building_tower_A_blue.gltf",
+      "x": -80,
+      "z": -70,
+      "yaw": 0.6,
+      "height": 28,
+      "clearance": 18
+    },
+    {
+      "file": "building_tower_A_blue.gltf",
+      "x": 82,
+      "z": 74,
+      "yaw": -2.2,
+      "height": 28,
+      "clearance": 18
+    },
+    {
+      "file": "building_well_blue.gltf",
+      "x": 20,
+      "z": -50,
+      "yaw": 0,
+      "height": 5,
+      "clearance": 8
+    },
+    {
+      "file": "props/tent.gltf",
+      "x": -55,
+      "z": 48,
+      "yaw": 1.1,
+      "height": 4,
+      "clearance": 7
+    }
+  ],
+  "scatter": {
+    "trees": {
+      "attempts": 160,
+      "count": 22,
+      "seed": 41,
+      "scale": [
+        0.95,
+        1.3
+      ]
+    },
+    "pines": {
+      "attempts": 40,
+      "count": 4,
+      "seed": 42,
+      "scale": [
+        1,
+        1.2
+      ]
+    },
+    "rocks": {
+      "attempts": 70,
+      "count": 14,
+      "seed": 43,
+      "scale": [
+        0.7,
+        1.3
+      ]
+    },
+    "bushes": {
+      "attempts": 100,
+      "count": 24,
+      "seed": 44,
+      "scale": [
+        0.9,
+        1.4
+      ]
+    },
+    "grass": {
+      "attempts": 400,
+      "count": 120,
+      "seed": 45,
+      "scale": [
+        1,
+        1.6
+      ]
+    },
+    "ringTrees": 0
+  },
+  "vibe": {
+    "theme": "storm",
+    "clear": [
+      0.42,
+      0.5,
+      0.58
+    ],
+    "ambient": [
+      0.3,
+      0.34,
+      0.4
+    ],
+    "fog": {
+      "density": 0.006,
+      "color": [
+        0.48,
+        0.54,
+        0.6
+      ]
+    },
+    "sun": {
+      "position": [
+        20,
+        22,
+        -80
+      ],
+      "intensity": 0.85,
+      "diffuse": [
+        0.82,
+        0.88,
+        1
+      ]
+    },
+    "hemi": {
+      "intensity": 0.5,
+      "ground": [
+        0.16,
+        0.18,
+        0.2
+      ]
+    },
+    "sky": {
+      "luminance": 0.7,
+      "turbidity": 6,
+      "rayleigh": 1.8,
+      "mieCoefficient": 0.007,
+      "mieDirectionalG": 0.75
+    },
+    "terrain": {
+      "grass": [
+        0.32,
+        0.42,
+        0.3
+      ],
+      "grassDark": [
+        0.22,
+        0.3,
+        0.22
+      ],
+      "dirt": [
+        0.4,
+        0.36,
+        0.3
+      ]
+    }
+  },
+  "copy": {
+    "eyebrow": "Field 5",
+    "blurb": "Small, fast, and he never loses the scent. Eight knights. If you clump, he cuts the pack. If you spread, he sprints the gaps.",
+    "startCta": "Chase the runner",
+    "winTitle": "Caught",
+    "winBody": "Speed was not enough once the paths closed in.",
+    "loseTitle": "Gone",
+    "loseBody": "He ran you down one at a time. Pin him with overlapping macros.",
+    "nextLabel": "The Tank"
+  }
+}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

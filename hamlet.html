@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>The Hamlet</title>
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+    <div id="hud" class="hidden">
+      <div id="mode-badge">MANCER</div>
+      <div id="knight-pool">Knights 0/20</div>
+      <div id="score">Score 10,000</div>
+      <div id="giant-hp-wrap">
+        <div class="boss-label">The Raider</div>
+        <div class="boss-bar">
+          <div id="giant-hp-fill"></div>
+        </div>
+        <div id="giant-hp-text">200 / 200</div>
+      </div>
+      <div id="knight-hp">Knight HP 20/20</div>
+      <div id="recording-pip" class="hidden">REC</div>
+      <div id="macro-panel">
+        <div class="panel-title">Macros</div>
+        <div id="macro-list"></div>
+        <div id="macro-hint"></div>
+      </div>
+      <div id="help"></div>
+      <div id="hurt-flash"></div>
+    </div>
+    <div id="win-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="win-title">The hamlet holds</h1>
+        <p id="win-score" class="score-line">Score 0</p>
+        <p id="win-body">The villagers will speak of the paths you wrote in the dirt.</p>
+        <button type="button" class="cta" id="reset-button">Fight again</button>
+        <a id="next-level" class="cta" href="siege.html">Next level: The Siege</a>
+      </div>
+    </div>
+    <div id="lose-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="lose-title">The hamlet burns</h1>
+        <p id="lose-body">He smashed the line. Record a wider approach.</p>
+        <button type="button" class="cta" id="retry-button">Try again</button>
+      </div>
+    </div>
+    <div id="start-overlay">
+      <div class="panel">
+        <p class="eyebrow" id="level-eyebrow">Field 3</p>
+        <h1 id="level-title">The Hamlet</h1>
+        <p id="level-blurb">A hamlet at the south edge. Twenty knights, and the raider hits harder. Use the houses to break his chase.</p>
+        <ul>
+          <li><strong>Mancer</strong> — tap or click the field to place your knight and start a macro</li>
+          <li><strong>Macro</strong> — play the knight; Overview or <kbd>Tab</kbd> returns to overview</li>
+          <li>Stick or <kbd>WASD</kbd> move · Sprint / <kbd>Shift</kbd> run · Attack or <kbd>J</kbd></li>
+        </ul>
+        <button type="button" class="cta" id="start-button" disabled>Loading the field…</button>
+        <p class="level-nav"><a href="fields.html">All fields</a></p>
+      </div>
+    </div>
+    <script type="application/json" id="level-config">
+{
+  "title": "The Hamlet",
+  "bossName": "The Raider",
+  "next": "siege.html",
+  "knights": 20,
+  "giant": {
+    "hp": 200,
+    "size": 0.85,
+    "speed": 6.4,
+    "damage": 42,
+    "smashRange": 8,
+    "smashAngle": 52,
+    "sightRange": 46,
+    "turnSpeed": 84
+  },
+  "arena": {
+    "x": 0,
+    "z": 4,
+    "radius": 34
+  },
+  "spawn": {
+    "x": 8,
+    "z": -32
+  },
+  "villageRing": null,
+  "flats": [
+    {
+      "x": -8,
+      "z": 48,
+      "radius": 28
+    }
+  ],
+  "buildings": [
+    {
+      "file": "building_home_A_blue.gltf",
+      "x": -18,
+      "z": 52,
+      "yaw": 3.1,
+      "height": 12
+    },
+    {
+      "file": "building_home_B_blue.gltf",
+      "x": 4,
+      "z": 58,
+      "yaw": 3.2,
+      "height": 13
+    },
+    {
+      "file": "building_tavern_blue.gltf",
+      "x": 22,
+      "z": 50,
+      "yaw": -2.8,
+      "height": 16
+    },
+    {
+      "file": "building_well_blue.gltf",
+      "x": 2,
+      "z": 44,
+      "yaw": 0,
+      "height": 5,
+      "clearance": 8
+    },
+    {
+      "file": "building_market_blue.gltf",
+      "x": -30,
+      "z": 40,
+      "yaw": 1.1,
+      "height": 12
+    },
+    {
+      "file": "building_church_blue.gltf",
+      "x": 36,
+      "z": 62,
+      "yaw": -2.4,
+      "height": 22,
+      "clearance": 18
+    }
+  ],
+  "scatter": {
+    "trees": {
+      "attempts": 280,
+      "count": 54,
+      "seed": 31,
+      "scale": [
+        1,
+        1.5
+      ]
+    },
+    "pines": {
+      "attempts": 80,
+      "count": 14,
+      "seed": 32,
+      "scale": [
+        1,
+        1.35
+      ]
+    },
+    "rocks": {
+      "attempts": 120,
+      "count": 30,
+      "seed": 33,
+      "scale": [
+        0.85,
+        1.55
+      ]
+    },
+    "bushes": {
+      "attempts": 200,
+      "count": 60,
+      "seed": 34,
+      "scale": [
+        0.95,
+        1.55
+      ]
+    },
+    "grass": {
+      "attempts": 480,
+      "count": 150,
+      "seed": 35,
+      "scale": [
+        1.1,
+        1.8
+      ]
+    },
+    "ringTrees": 10
+  },
+  "vibe": {
+    "theme": "hamlet",
+    "clear": [
+      0.72,
+      0.58,
+      0.46
+    ],
+    "ambient": [
+      0.44,
+      0.36,
+      0.3
+    ],
+    "fog": {
+      "density": 0.005,
+      "color": [
+        0.74,
+        0.6,
+        0.48
+      ]
+    },
+    "sun": {
+      "position": [
+        -50,
+        28,
+        30
+      ],
+      "intensity": 1.08,
+      "diffuse": [
+        1,
+        0.78,
+        0.52
+      ]
+    },
+    "hemi": {
+      "intensity": 0.55,
+      "ground": [
+        0.3,
+        0.2,
+        0.14
+      ]
+    },
+    "sky": {
+      "luminance": 0.88,
+      "turbidity": 5.5,
+      "rayleigh": 0.9,
+      "mieCoefficient": 0.008,
+      "mieDirectionalG": 0.85
+    },
+    "terrain": {
+      "grass": [
+        0.44,
+        0.5,
+        0.22
+      ],
+      "grassDark": [
+        0.34,
+        0.38,
+        0.16
+      ],
+      "dirt": [
+        0.6,
+        0.4,
+        0.22
+      ]
+    }
+  },
+  "copy": {
+    "eyebrow": "Field 3",
+    "blurb": "A hamlet at the south edge. Twenty knights, and the raider hits harder. Use the houses to break his chase.",
+    "startCta": "Defend the hamlet",
+    "winTitle": "The hamlet holds",
+    "winBody": "The villagers will speak of the paths you wrote in the dirt.",
+    "loseTitle": "The hamlet burns",
+    "loseBody": "He smashed the line. Record a wider approach.",
+    "nextLabel": "The Siege"
+  }
+}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

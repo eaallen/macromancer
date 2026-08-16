@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>The Tank</title>
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+    <div id="hud" class="hidden">
+      <div id="mode-badge">MANCER</div>
+      <div id="knight-pool">Knights 0/8</div>
+      <div id="score">Score 10,000</div>
+      <div id="giant-hp-wrap">
+        <div class="boss-label">The Bulwark</div>
+        <div class="boss-bar">
+          <div id="giant-hp-fill"></div>
+        </div>
+        <div id="giant-hp-text">640 / 640</div>
+      </div>
+      <div id="knight-hp">Knight HP 20/20</div>
+      <div id="recording-pip" class="hidden">REC</div>
+      <div id="macro-panel">
+        <div class="panel-title">Macros</div>
+        <div id="macro-list"></div>
+        <div id="macro-hint"></div>
+      </div>
+      <div id="help"></div>
+      <div id="hurt-flash"></div>
+    </div>
+    <div id="win-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="win-title">The wall cracks</h1>
+        <p id="win-score" class="score-line">Score 0</p>
+        <p id="win-body">You chipped him down from every side he could not turn.</p>
+        <button type="button" class="cta" id="reset-button">Fight again</button>
+        <a id="next-level" class="cta" href="watchman.html">Next level: The Watchman</a>
+      </div>
+    </div>
+    <div id="lose-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="lose-title">Crushed</h1>
+        <p id="lose-body">The smash is wide. Attack his back, not his gaze.</p>
+        <button type="button" class="cta" id="retry-button">Try again</button>
+      </div>
+    </div>
+    <div id="start-overlay">
+      <div class="panel">
+        <p class="eyebrow" id="level-eyebrow">Field 6</p>
+        <h1 id="level-title">The Tank</h1>
+        <p id="level-blurb">Huge, slow, and a single smash clears a crowd. Eight knights against a wall of meat. Do not stand in front of him.</p>
+        <ul>
+          <li><strong>Mancer</strong> — tap or click the field to place your knight and start a macro</li>
+          <li><strong>Macro</strong> — play the knight; Overview or <kbd>Tab</kbd> returns to overview</li>
+          <li>Stick or <kbd>WASD</kbd> move · Sprint / <kbd>Shift</kbd> run · Attack or <kbd>J</kbd></li>
+        </ul>
+        <button type="button" class="cta" id="start-button" disabled>Loading the field…</button>
+        <p class="level-nav"><a href="fields.html">All fields</a></p>
+      </div>
+    </div>
+    <script type="application/json" id="level-config">
+{
+  "title": "The Tank",
+  "bossName": "The Bulwark",
+  "next": "watchman.html",
+  "knights": 8,
+  "giant": {
+    "hp": 640,
+    "size": 1.45,
+    "speed": 3.2,
+    "damage": 72,
+    "smashRange": 12,
+    "smashAngle": 72,
+    "sightRange": 40,
+    "turnSpeed": 48,
+    "windup": 1.4,
+    "recovery": 1.7,
+    "attackCooldown": 2.8
+  },
+  "arena": {
+    "x": 0,
+    "z": 4,
+    "radius": 32
+  },
+  "spawn": {
+    "x": 0,
+    "z": -26
+  },
+  "villageRing": null,
+  "flats": [
+    {
+      "x": 55,
+      "z": 8,
+      "radius": 26
+    }
+  ],
+  "buildings": [
+    {
+      "file": "building_barracks_blue.gltf",
+      "x": 48,
+      "z": 20,
+      "yaw": -1.6,
+      "height": 14
+    },
+    {
+      "file": "building_barracks_blue.gltf",
+      "x": 62,
+      "z": -2,
+      "yaw": -1.4,
+      "height": 14
+    },
+    {
+      "file": "building_tower_A_blue.gltf",
+      "x": 72,
+      "z": 28,
+      "yaw": -2,
+      "height": 30,
+      "clearance": 18
+    },
+    {
+      "file": "building_blacksmith_blue.gltf",
+      "x": 44,
+      "z": -16,
+      "yaw": -0.8,
+      "height": 13
+    },
+    {
+      "file": "building_well_blue.gltf",
+      "x": 36,
+      "z": 6,
+      "yaw": 0,
+      "height": 5,
+      "clearance": 8
+    },
+    {
+      "file": "props/weaponrack.gltf",
+      "x": 40,
+      "z": 12,
+      "yaw": 0.4,
+      "height": 2.4,
+      "clearance": 3
+    }
+  ],
+  "scatter": {
+    "trees": {
+      "attempts": 240,
+      "count": 40,
+      "seed": 51,
+      "scale": [
+        1.1,
+        1.6
+      ]
+    },
+    "pines": {
+      "attempts": 180,
+      "count": 36,
+      "seed": 52,
+      "scale": [
+        1.1,
+        1.5
+      ]
+    },
+    "rocks": {
+      "attempts": 200,
+      "count": 60,
+      "seed": 53,
+      "scale": [
+        1,
+        1.9
+      ]
+    },
+    "bushes": {
+      "attempts": 160,
+      "count": 40,
+      "seed": 54,
+      "scale": [
+        1,
+        1.5
+      ]
+    },
+    "grass": {
+      "attempts": 360,
+      "count": 100,
+      "seed": 55,
+      "scale": [
+        1,
+        1.6
+      ]
+    },
+    "ringTrees": 6
+  },
+  "vibe": {
+    "theme": "fog",
+    "clear": [
+      0.5,
+      0.5,
+      0.46
+    ],
+    "ambient": [
+      0.32,
+      0.32,
+      0.3
+    ],
+    "fog": {
+      "density": 0.012,
+      "color": [
+        0.52,
+        0.52,
+        0.48
+      ]
+    },
+    "sun": {
+      "position": [
+        30,
+        18,
+        40
+      ],
+      "intensity": 0.7,
+      "diffuse": [
+        0.86,
+        0.84,
+        0.76
+      ]
+    },
+    "hemi": {
+      "intensity": 0.48,
+      "ground": [
+        0.2,
+        0.18,
+        0.14
+      ]
+    },
+    "sky": {
+      "luminance": 0.6,
+      "turbidity": 10,
+      "rayleigh": 0.7,
+      "mieCoefficient": 0.012,
+      "mieDirectionalG": 0.88
+    },
+    "terrain": {
+      "grass": [
+        0.34,
+        0.38,
+        0.22
+      ],
+      "grassDark": [
+        0.24,
+        0.26,
+        0.16
+      ],
+      "dirt": [
+        0.42,
+        0.34,
+        0.24
+      ]
+    }
+  },
+  "copy": {
+    "eyebrow": "Field 6",
+    "blurb": "Huge, slow, and a single smash clears a crowd. Eight knights against a wall of meat. Do not stand in front of him.",
+    "startCta": "Face the bulwark",
+    "winTitle": "The wall cracks",
+    "winBody": "You chipped him down from every side he could not turn.",
+    "loseTitle": "Crushed",
+    "loseBody": "The smash is wide. Attack his back, not his gaze.",
+    "nextLabel": "The Watchman"
+  }
+}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

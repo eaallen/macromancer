@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>The Twins</title>
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+    <div id="hud" class="hidden">
+      <div id="mode-badge">MANCER</div>
+      <div id="knight-pool">Knights 0/4</div>
+      <div id="score">Score 10,000</div>
+      <div id="giant-hp-wrap">
+        <div class="boss-label">The Twins</div>
+        <div class="boss-bar">
+          <div id="giant-hp-fill"></div>
+        </div>
+        <div id="giant-hp-text">640 / 640</div>
+      </div>
+      <div id="knight-hp">Knight HP 20/20</div>
+      <div id="recording-pip" class="hidden">REC</div>
+      <div id="macro-panel">
+        <div class="panel-title">Macros</div>
+        <div id="macro-list"></div>
+        <div id="macro-hint"></div>
+      </div>
+      <div id="help"></div>
+      <div id="hurt-flash"></div>
+    </div>
+    <div id="win-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="win-title">Both fall</h1>
+        <p id="win-score" class="score-line">Score 0</p>
+        <p id="win-body">Eleven fields. Two giants, split and spent. The field is yours.</p>
+        <button type="button" class="cta" id="reset-button">Fight again</button>
+        <a id="next-level" class="cta" href="fields.html">All fields</a>
+      </div>
+    </div>
+    <div id="lose-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="lose-title">They still stand</h1>
+        <p id="lose-body">They split the field. Split yours too — one giant each, until only one knight remains.</p>
+        <button type="button" class="cta" id="retry-button">Try again</button>
+      </div>
+    </div>
+    <div id="start-overlay">
+      <div class="panel">
+        <p class="eyebrow" id="level-eyebrow">Field 11 · The last field</p>
+        <h1 id="level-title">The Twins</h1>
+        <p id="level-blurb">Four knights — the same as the colossus. Two giants start on opposite sides and never hunt the same knight while two still stand.</p>
+        <ul>
+          <li><strong>Mancer</strong> — tap or click the field to place your knight and start a macro</li>
+          <li><strong>Macro</strong> — play the knight; Overview or <kbd>Tab</kbd> returns to overview</li>
+          <li>Stick or <kbd>WASD</kbd> move · Sprint / <kbd>Shift</kbd> run · Attack or <kbd>J</kbd></li>
+        </ul>
+        <button type="button" class="cta" id="start-button" disabled>Loading the field…</button>
+        <p class="level-nav"><a href="fields.html">All fields</a></p>
+      </div>
+    </div>
+    <script type="application/json" id="level-config">
+{
+  "title": "The Twins",
+  "bossName": "The Twins",
+  "next": "fields.html",
+  "knights": 4,
+  "giants": [
+    {
+      "hp": 320,
+      "size": 1.05,
+      "speed": 7.6,
+      "damage": 58,
+      "smashRange": 9.2,
+      "smashAngle": 56,
+      "sightRange": 64,
+      "turnSpeed": 100,
+      "windup": 1.05,
+      "recovery": 1.2,
+      "attackCooldown": 2.15,
+      "x": -34,
+      "z": 4
+    },
+    {
+      "hp": 320,
+      "size": 1.05,
+      "speed": 7.6,
+      "damage": 58,
+      "smashRange": 9.2,
+      "smashAngle": 56,
+      "sightRange": 64,
+      "turnSpeed": 100,
+      "windup": 1.05,
+      "recovery": 1.2,
+      "attackCooldown": 2.15,
+      "x": 34,
+      "z": 4
+    }
+  ],
+  "arena": {
+    "x": 0,
+    "z": 4,
+    "radius": 40
+  },
+  "spawn": {
+    "x": 0,
+    "z": -34
+  },
+  "villageRing": {
+    "radius": 72,
+    "halfWidth": 16
+  },
+  "flats": [],
+  "buildings": [
+    {
+      "file": "building_tower_A_blue.gltf",
+      "x": -74,
+      "z": 28,
+      "yaw": 1.7,
+      "height": 34,
+      "clearance": 18
+    },
+    {
+      "file": "building_tower_A_blue.gltf",
+      "x": 74,
+      "z": 28,
+      "yaw": -1.7,
+      "height": 34,
+      "clearance": 18
+    },
+    {
+      "file": "building_church_blue.gltf",
+      "x": 0,
+      "z": 82,
+      "yaw": 3.14,
+      "height": 26,
+      "clearance": 20
+    },
+    {
+      "file": "building_windmill_blue.gltf",
+      "x": -82,
+      "z": -18,
+      "yaw": 1.15,
+      "height": 28,
+      "clearance": 18
+    },
+    {
+      "file": "building_barracks_blue.gltf",
+      "x": 82,
+      "z": -18,
+      "yaw": -1.15,
+      "height": 14
+    },
+    {
+      "file": "building_home_A_blue.gltf",
+      "x": -44,
+      "z": -64,
+      "yaw": 0.25,
+      "height": 12
+    },
+    {
+      "file": "building_home_B_blue.gltf",
+      "x": 44,
+      "z": -64,
+      "yaw": -0.25,
+      "height": 13
+    }
+  ],
+  "scatter": {
+    "trees": {
+      "attempts": 280,
+      "count": 46,
+      "seed": 101,
+      "scale": [
+        1.1,
+        1.6
+      ]
+    },
+    "pines": {
+      "attempts": 180,
+      "count": 36,
+      "seed": 102,
+      "scale": [
+        1.15,
+        1.55
+      ]
+    },
+    "rocks": {
+      "attempts": 160,
+      "count": 40,
+      "seed": 103,
+      "scale": [
+        1,
+        1.8
+      ]
+    },
+    "bushes": {
+      "attempts": 150,
+      "count": 36,
+      "seed": 104,
+      "scale": [
+        1,
+        1.45
+      ]
+    },
+    "grass": {
+      "attempts": 300,
+      "count": 84,
+      "seed": 105,
+      "scale": [
+        1,
+        1.5
+      ]
+    },
+    "ringTrees": 18
+  },
+  "vibe": {
+    "theme": "twins",
+    "clear": [
+      0.18,
+      0.22,
+      0.32
+    ],
+    "ambient": [
+      0.24,
+      0.26,
+      0.34
+    ],
+    "fog": {
+      "density": 0.0065,
+      "color": [
+        0.22,
+        0.26,
+        0.36
+      ]
+    },
+    "sun": {
+      "position": [
+        80,
+        28,
+        -40
+      ],
+      "intensity": 1.05,
+      "diffuse": [
+        0.95,
+        0.78,
+        0.62
+      ]
+    },
+    "hemi": {
+      "intensity": 0.48,
+      "ground": [
+        0.12,
+        0.12,
+        0.16
+      ]
+    },
+    "sky": {
+      "luminance": 0.55,
+      "turbidity": 4.5,
+      "rayleigh": 1.1,
+      "mieCoefficient": 0.008,
+      "mieDirectionalG": 0.84
+    },
+    "terrain": {
+      "grass": [
+        0.22,
+        0.3,
+        0.24
+      ],
+      "grassDark": [
+        0.14,
+        0.2,
+        0.16
+      ],
+      "dirt": [
+        0.32,
+        0.26,
+        0.22
+      ]
+    }
+  },
+  "copy": {
+    "eyebrow": "Field 11 · The last field",
+    "blurb": "Four knights — the same as the colossus. Two giants start on opposite sides and never hunt the same knight while two still stand.",
+    "startCta": "Face the twins",
+    "winTitle": "Both fall",
+    "winBody": "Eleven fields. Two giants, split and spent. The field is yours.",
+    "loseTitle": "They still stand",
+    "loseBody": "They split the field. Split yours too — one giant each, until only one knight remains.",
+    "nextLabel": "All fields"
+  }
+}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

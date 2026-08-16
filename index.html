@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Training Ground</title>
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+    <div id="hud" class="hidden">
+      <div id="mode-badge">MANCER</div>
+      <div id="knight-pool">Knights 0/100</div>
+      <div id="score">Score 10,000</div>
+      <div id="giant-hp-wrap">
+        <div class="boss-label">The Brute</div>
+        <div class="boss-bar">
+          <div id="giant-hp-fill"></div>
+        </div>
+        <div id="giant-hp-text">80 / 80</div>
+      </div>
+      <div id="knight-hp">Knight HP 20/20</div>
+      <div id="recording-pip" class="hidden">REC</div>
+      <div id="macro-panel">
+        <div class="panel-title">Macros</div>
+        <div id="macro-list"></div>
+        <div id="macro-hint"></div>
+      </div>
+      <div id="help"></div>
+      <div id="hurt-flash"></div>
+    </div>
+    <div id="win-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="win-title">The brute falls</h1>
+        <p id="win-score" class="score-line">Score 0</p>
+        <p id="win-body">That was the lesson. The next field will not be so kind.</p>
+        <button type="button" class="cta" id="reset-button">Fight again</button>
+        <a id="next-level" class="cta" href="meadow.html">Next level: Open Meadow</a>
+      </div>
+    </div>
+    <div id="lose-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="lose-title">He still stands</h1>
+        <p id="lose-body">You have a hundred knights. Record a cleaner path and send more.</p>
+        <button type="button" class="cta" id="retry-button">Try again</button>
+      </div>
+    </div>
+    <div id="start-overlay">
+      <div class="panel">
+        <p class="eyebrow" id="level-eyebrow">Field 1 · Intro</p>
+        <h1 id="level-title">Training Ground</h1>
+        <p id="level-blurb">A smaller brute waits on the training green. You have a hundred knights. Click the field, record a path, and send the copies. Learn the loop before the real siege.</p>
+        <ul>
+          <li><strong>Mancer</strong> — tap or click the field to place your knight and start a macro</li>
+          <li><strong>Macro</strong> — play the knight; Overview or <kbd>Tab</kbd> returns to overview</li>
+          <li>Stick or <kbd>WASD</kbd> move · Sprint / <kbd>Shift</kbd> run · Attack or <kbd>J</kbd></li>
+        </ul>
+        <button type="button" class="cta" id="start-button" disabled>Loading the field…</button>
+        <p class="level-nav"><a href="fields.html">All fields</a></p>
+      </div>
+    </div>
+    <script type="application/json" id="level-config">
+{
+  "title": "Training Ground",
+  "bossName": "The Brute",
+  "next": "meadow.html",
+  "knights": 100,
+  "giant": {
+    "hp": 80,
+    "size": 0.5,
+    "speed": 4,
+    "damage": 28,
+    "smashRange": 6,
+    "smashAngle": 45,
+    "sightRange": 32,
+    "turnSpeed": 70
+  },
+  "arena": {
+    "x": 0,
+    "z": 4,
+    "radius": 34
+  },
+  "spawn": {
+    "x": 0,
+    "z": -28
+  },
+  "villageRing": null,
+  "flats": [
+    {
+      "x": -68,
+      "z": 8,
+      "radius": 30
+    }
+  ],
+  "buildings": [
+    {
+      "file": "building_home_A_blue.gltf",
+      "x": -68,
+      "z": 18,
+      "yaw": 1.2,
+      "height": 12
+    },
+    {
+      "file": "building_home_B_blue.gltf",
+      "x": -78,
+      "z": 6,
+      "yaw": 0.8,
+      "height": 13
+    },
+    {
+      "file": "building_tavern_blue.gltf",
+      "x": -72,
+      "z": -8,
+      "yaw": 0.4,
+      "height": 16
+    },
+    {
+      "file": "building_well_blue.gltf",
+      "x": -58,
+      "z": 4,
+      "yaw": 0,
+      "height": 5,
+      "clearance": 10
+    },
+    {
+      "file": "building_barracks_blue.gltf",
+      "x": -84,
+      "z": 22,
+      "yaw": 1.4,
+      "height": 14
+    },
+    {
+      "file": "props/tent.gltf",
+      "x": -40,
+      "z": -10,
+      "yaw": 0.4,
+      "height": 4.2,
+      "clearance": 7
+    },
+    {
+      "file": "props/tent.gltf",
+      "x": -36,
+      "z": 2,
+      "yaw": -0.8,
+      "height": 4.2,
+      "clearance": 7
+    },
+    {
+      "file": "props/tent.gltf",
+      "x": -42,
+      "z": 14,
+      "yaw": 1.2,
+      "height": 4.2,
+      "clearance": 7
+    },
+    {
+      "file": "props/tent.gltf",
+      "x": -33,
+      "z": 22,
+      "yaw": 2.1,
+      "height": 4,
+      "clearance": 7
+    },
+    {
+      "file": "props/flag_blue.gltf",
+      "x": -48,
+      "z": 6,
+      "yaw": 0,
+      "height": 8,
+      "clearance": 4
+    },
+    {
+      "file": "props/crate_A_big.gltf",
+      "x": -52,
+      "z": -4,
+      "yaw": 0.3,
+      "height": 1.6,
+      "clearance": 3
+    },
+    {
+      "file": "props/barrel.gltf",
+      "x": -50,
+      "z": -7,
+      "yaw": 0,
+      "height": 1.2,
+      "clearance": 2
+    }
+  ],
+  "scatter": {
+    "trees": {
+      "attempts": 180,
+      "count": 28,
+      "seed": 11,
+      "scale": [
+        1,
+        1.4
+      ]
+    },
+    "pines": {
+      "attempts": 40,
+      "count": 6,
+      "seed": 12,
+      "scale": [
+        1,
+        1.3
+      ]
+    },
+    "rocks": {
+      "attempts": 80,
+      "count": 16,
+      "seed": 13,
+      "scale": [
+        0.8,
+        1.4
+      ]
+    },
+    "bushes": {
+      "attempts": 120,
+      "count": 32,
+      "seed": 14,
+      "scale": [
+        0.9,
+        1.5
+      ]
+    },
+    "grass": {
+      "attempts": 520,
+      "count": 180,
+      "seed": 15,
+      "scale": [
+        1.1,
+        1.8
+      ]
+    },
+    "ringTrees": 0
+  },
+  "vibe": {
+    "theme": "dawn",
+    "clear": [
+      0.86,
+      0.62,
+      0.48
+    ],
+    "ambient": [
+      0.48,
+      0.36,
+      0.28
+    ],
+    "fog": {
+      "density": 0.0035,
+      "color": [
+        0.9,
+        0.7,
+        0.52
+      ]
+    },
+    "sun": {
+      "position": [
+        110,
+        18,
+        8
+      ],
+      "intensity": 1.15,
+      "diffuse": [
+        1,
+        0.72,
+        0.45
+      ]
+    },
+    "hemi": {
+      "intensity": 0.62,
+      "ground": [
+        0.32,
+        0.18,
+        0.12
+      ]
+    },
+    "sky": {
+      "luminance": 0.95,
+      "turbidity": 8,
+      "rayleigh": 0.6,
+      "mieCoefficient": 0.01,
+      "mieDirectionalG": 0.9
+    },
+    "terrain": {
+      "grass": [
+        0.52,
+        0.55,
+        0.22
+      ],
+      "grassDark": [
+        0.4,
+        0.42,
+        0.16
+      ],
+      "dirt": [
+        0.62,
+        0.38,
+        0.2
+      ]
+    }
+  },
+  "copy": {
+    "eyebrow": "Field 1 · Intro",
+    "blurb": "A smaller brute waits on the training green. You have a hundred knights. Click the field, record a path, and send the copies. Learn the loop before the real siege.",
+    "startCta": "Begin training",
+    "winTitle": "The brute falls",
+    "winBody": "That was the lesson. The next field will not be so kind.",
+    "loseTitle": "He still stands",
+    "loseBody": "You have a hundred knights. Record a cleaner path and send more.",
+    "nextLabel": "Open Meadow"
+  }
+}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

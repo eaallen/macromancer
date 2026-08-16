@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>The Cleaver</title>
+  </head>
+  <body>
+    <canvas id="game-canvas"></canvas>
+    <div id="hud" class="hidden">
+      <div id="mode-badge">MANCER</div>
+      <div id="knight-pool">Knights 0/6</div>
+      <div id="score">Score 10,000</div>
+      <div id="giant-hp-wrap">
+        <div class="boss-label">The Reaper</div>
+        <div class="boss-bar">
+          <div id="giant-hp-fill"></div>
+        </div>
+        <div id="giant-hp-text">400 / 400</div>
+      </div>
+      <div id="knight-hp">Knight HP 20/20</div>
+      <div id="recording-pip" class="hidden">REC</div>
+      <div id="macro-panel">
+        <div class="panel-title">Macros</div>
+        <div id="macro-list"></div>
+        <div id="macro-hint"></div>
+      </div>
+      <div id="help"></div>
+      <div id="hurt-flash"></div>
+    </div>
+    <div id="win-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="win-title">The blade stills</h1>
+        <p id="win-score" class="score-line">Score 0</p>
+        <p id="win-body">You stayed out of the cone long enough to end him.</p>
+        <button type="button" class="cta" id="reset-button">Fight again</button>
+        <a id="next-level" class="cta" href="ember.html">Next level: Ember</a>
+      </div>
+    </div>
+    <div id="lose-overlay" class="hidden">
+      <div class="panel">
+        <h1 id="lose-title">Reaped</h1>
+        <p id="lose-body">The sweep is enormous. Attack from behind the swing.</p>
+        <button type="button" class="cta" id="retry-button">Try again</button>
+      </div>
+    </div>
+    <div id="start-overlay">
+      <div class="panel">
+        <p class="eyebrow" id="level-eyebrow">Field 8</p>
+        <h1 id="level-title">The Cleaver</h1>
+        <p id="level-blurb">Six knights. His smash reaches half the arena. Standing anywhere in front of him is a mistake.</p>
+        <ul>
+          <li><strong>Mancer</strong> — tap or click the field to place your knight and start a macro</li>
+          <li><strong>Macro</strong> — play the knight; Overview or <kbd>Tab</kbd> returns to overview</li>
+          <li>Stick or <kbd>WASD</kbd> move · Sprint / <kbd>Shift</kbd> run · Attack or <kbd>J</kbd></li>
+        </ul>
+        <button type="button" class="cta" id="start-button" disabled>Loading the field…</button>
+        <p class="level-nav"><a href="fields.html">All fields</a></p>
+      </div>
+    </div>
+    <script type="application/json" id="level-config">
+{
+  "title": "The Cleaver",
+  "bossName": "The Reaper",
+  "next": "ember.html",
+  "knights": 6,
+  "giant": {
+    "hp": 400,
+    "size": 1.2,
+    "speed": 6.8,
+    "damage": 62,
+    "smashRange": 16,
+    "smashAngle": 82,
+    "sightRange": 54,
+    "turnSpeed": 76,
+    "windup": 1.05
+  },
+  "arena": {
+    "x": 0,
+    "z": 4,
+    "radius": 36
+  },
+  "spawn": {
+    "x": 12,
+    "z": -30
+  },
+  "villageRing": null,
+  "flats": [
+    {
+      "x": -40,
+      "z": -8,
+      "radius": 22
+    }
+  ],
+  "buildings": [
+    {
+      "file": "building_market_blue.gltf",
+      "x": -42,
+      "z": 4,
+      "yaw": 1.1,
+      "height": 12
+    },
+    {
+      "file": "building_blacksmith_blue.gltf",
+      "x": -52,
+      "z": -14,
+      "yaw": 0.7,
+      "height": 13
+    },
+    {
+      "file": "building_tavern_blue.gltf",
+      "x": -28,
+      "z": -18,
+      "yaw": 0.3,
+      "height": 16
+    },
+    {
+      "file": "props/crate_A_big.gltf",
+      "x": -34,
+      "z": -6,
+      "yaw": 0.2,
+      "height": 1.6,
+      "clearance": 3
+    },
+    {
+      "file": "props/barrel.gltf",
+      "x": -38,
+      "z": -10,
+      "yaw": 0,
+      "height": 1.2,
+      "clearance": 2
+    },
+    {
+      "file": "props/weaponrack.gltf",
+      "x": -46,
+      "z": -8,
+      "yaw": 1.2,
+      "height": 2.4,
+      "clearance": 3
+    }
+  ],
+  "scatter": {
+    "trees": {
+      "attempts": 200,
+      "count": 34,
+      "seed": 71,
+      "scale": [
+        1,
+        1.4
+      ]
+    },
+    "pines": {
+      "attempts": 80,
+      "count": 12,
+      "seed": 72,
+      "scale": [
+        1,
+        1.3
+      ]
+    },
+    "rocks": {
+      "attempts": 240,
+      "count": 70,
+      "seed": 73,
+      "scale": [
+        1,
+        1.85
+      ]
+    },
+    "bushes": {
+      "attempts": 140,
+      "count": 36,
+      "seed": 74,
+      "scale": [
+        0.9,
+        1.4
+      ]
+    },
+    "grass": {
+      "attempts": 360,
+      "count": 110,
+      "seed": 75,
+      "scale": [
+        1,
+        1.6
+      ]
+    },
+    "ringTrees": 4
+  },
+  "vibe": {
+    "theme": "storm",
+    "clear": [
+      0.28,
+      0.38,
+      0.4
+    ],
+    "ambient": [
+      0.24,
+      0.3,
+      0.32
+    ],
+    "fog": {
+      "density": 0.008,
+      "color": [
+        0.3,
+        0.4,
+        0.42
+      ]
+    },
+    "sun": {
+      "position": [
+        8,
+        14,
+        -40
+      ],
+      "intensity": 0.75,
+      "diffuse": [
+        0.7,
+        0.86,
+        0.9
+      ]
+    },
+    "hemi": {
+      "intensity": 0.42,
+      "ground": [
+        0.12,
+        0.16,
+        0.16
+      ]
+    },
+    "sky": {
+      "luminance": 0.5,
+      "turbidity": 9,
+      "rayleigh": 1.1,
+      "mieCoefficient": 0.011,
+      "mieDirectionalG": 0.8
+    },
+    "terrain": {
+      "grass": [
+        0.26,
+        0.36,
+        0.3
+      ],
+      "grassDark": [
+        0.18,
+        0.26,
+        0.22
+      ],
+      "dirt": [
+        0.36,
+        0.32,
+        0.28
+      ]
+    }
+  },
+  "copy": {
+    "eyebrow": "Field 8",
+    "blurb": "Six knights. His smash reaches half the arena. Standing anywhere in front of him is a mistake.",
+    "startCta": "Approach the reaper",
+    "winTitle": "The blade stills",
+    "winBody": "You stayed out of the cone long enough to end him.",
+    "loseTitle": "Reaped",
+    "loseBody": "The sweep is enormous. Attack from behind the swing.",
+    "nextLabel": "Ember"
+  }
+}
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
