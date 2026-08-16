@@ -284,8 +284,9 @@ function suppressOsCallout(el: HTMLElement): void {
   const block = (event: Event): void => {
     event.preventDefault();
   };
-  el.addEventListener("contextmenu", block);
-  el.addEventListener("selectstart", block);
-  el.addEventListener("dragstart", block);
-  el.addEventListener("touchstart", block, { passive: false });
+  const capture = { capture: true } as const;
+  el.addEventListener("contextmenu", block, capture);
+  el.addEventListener("selectstart", block, capture);
+  el.addEventListener("dragstart", block, capture);
+  el.addEventListener("touchstart", block, { passive: false, capture: true });
 }
