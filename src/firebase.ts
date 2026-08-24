@@ -20,18 +20,11 @@ export const db = getFirestore(firebaseApp);
 type AnalyticsParam = string | number | boolean;
 type AnalyticsParams = Record<string, AnalyticsParam>;
 
-let analytics: Analytics | null = null;
 let analyticsReady: Promise<Analytics | null> | null = null;
 
 export function initAnalytics(): Promise<Analytics | null> {
   analyticsReady ??= isSupported()
-    .then((supported) => {
-      if (!supported) {
-        return null;
-      }
-      analytics = getAnalytics(firebaseApp);
-      return analytics;
-    })
+    .then((supported) => (supported ? getAnalytics(firebaseApp) : null))
     .catch(() => null);
   return analyticsReady;
 }
