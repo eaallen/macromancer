@@ -15,9 +15,11 @@ import { Game } from "./game/game.ts";
 import { loadPageLevel } from "./game/level.ts";
 import { ensurePlayer } from "./game/leaderboard.ts";
 import { addHowItWasMadeLink } from "./game/siteNav.ts";
+import { initAnalytics } from "./firebase.ts";
 
 const level = loadPageLevel();
 addHowItWasMadeLink();
+void initAnalytics();
 
 const foundCanvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
 if (!foundCanvas) {

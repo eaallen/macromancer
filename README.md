@@ -15,7 +15,7 @@ Source: this repository.
 - Vite 7 + TypeScript
 - [Babylon.js](https://www.babylonjs.com/) 8
 - [KayKit](https://kaylousberg.com/) characters and scenery (CC0)
-- Firebase Hosting, Cloud Firestore, anonymous Auth
+- Firebase Hosting, Cloud Firestore, anonymous Auth, Google Analytics
 
 ## Local
 

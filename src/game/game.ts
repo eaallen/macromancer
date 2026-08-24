@@ -21,6 +21,8 @@ import { heightAt } from "./height.ts";
 import { fightScore, formatScore } from "./score.ts";
 import { hideWinScoreboard, showWinScoreboard } from "./scoreboard.ts";
 import type { LevelConfig } from "./level.ts";
+import { levelIdFromPath } from "./levelIds.ts";
+import { logAnalyticsEvent } from "../firebase.ts";
 
 const MANCER_CLICK_SLOP = 8;
 const MANCER_CAM_FOLLOW = 4.2;
@@ -169,6 +171,7 @@ export class Game {
     }
     this.input.flush();
     this.started = true;
+    this.logFightEvent("level_start");
   }
 
   update(dt: number): void {
@@ -273,6 +276,7 @@ export class Game {
     } else {
       this.player.setVisible(false);
     }
+    this.logFightEvent("level_start");
   }
 
   private updateGiantVictory(dt: number, foes: Knight[]): void {
@@ -325,6 +329,14 @@ export class Game {
       hideWinScoreboard();
     } else {
       showWinScoreboard(score);
+    }
+    this.logFightEvent("level_end", {
+      success: !this.lost,
+      score,
+      value: score,
+    });
+    if (!this.lost) {
+      this.logFightEvent("post_score", { score, value: score });
     }
   }
 
@@ -636,6 +648,17 @@ export class Game {
       return 0;
     }
     return fightScore(this.fightTime, this.knightDeaths, this.activatedMacros.size);
+  }
+
+  private logFightEvent(
+    name: string,
+    extra: Record<string, string | number | boolean> = {},
+  ): void {
+    logAnalyticsEvent(name, {
+      level_name: this.level.title,
+      level_id: levelIdFromPath(window.location.pathname),
+      ...extra,
+    });
   }
 
   private noteActivatedMacro(id: string): void {
