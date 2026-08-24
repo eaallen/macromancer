@@ -81,6 +81,12 @@ export function createInput(canvas: HTMLCanvasElement): InputState {
       focusGameKeys();
     }
   });
+  canvas.addEventListener("contextmenu", (event) => {
+    event.preventDefault();
+  });
+  canvas.addEventListener("selectstart", (event) => {
+    event.preventDefault();
+  });
   canvas.addEventListener("pointerdown", (event) => {
     focusGameKeys();
     if (event.button !== 0) {
