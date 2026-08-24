@@ -1,4 +1,5 @@
 import "./style.css";
+import { initAnalytics } from "./firebase.ts";
 import { fetchTopEntries } from "./game/leaderboard.ts";
 import { LEVEL_CATALOG } from "./game/levelIds.ts";
 import { formatScore } from "./game/score.ts";
@@ -48,4 +49,5 @@ async function fillFieldBoards(): Promise<void> {
 }
 
 addHowItWasMadeLink();
+void initAnalytics();
 void fillFieldBoards();

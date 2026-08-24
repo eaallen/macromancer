@@ -51,6 +51,7 @@ const STACK = [
   { name: "Babylon.js 8", role: "WebGL scene, cameras, combat" },
   { name: "KayKit (CC0)", role: "Knight, ogre, forest, village" },
   { name: "Firebase Hosting", role: "macromancer.web.app" },
+  { name: "Google Analytics", role: "Page views and fight events" },
   { name: "Cloud Firestore", role: "Per-field high scores" },
   { name: "Anonymous Auth", role: "Leaderboard identities" },
   { name: "Cursor agents", role: "Wrote nearly all of the code" },
